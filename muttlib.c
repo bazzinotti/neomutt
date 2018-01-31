@@ -1466,6 +1466,10 @@ void mutt_get_parent_path(char *output, char *path, size_t olen)
     mutt_str_strfcpy(output, path, olen);
     int n = mutt_str_strlen(output);
 
+    // remove any final trailing /
+    if (output[n-1] == '/')
+      output[n-1] = '\0';
+
     /* Remove everything until the next slash */
     for (n--; ((n >= 0) && (output[n] != '/')); n--)
       ;
@@ -1478,6 +1482,25 @@ void mutt_get_parent_path(char *output, char *path, size_t olen)
       output[1] = '\0';
     }
   }
+}
+
+/**
+ * mutt_realpath - resolve path, unraveling symlinks
+ *
+ * @param buf Buffer to path.
+ * @retval 0 On error buf is not overwritten
+ * @retval len String length of resolved path
+ *
+ * Resolve and overwrite the path in buf. buf size should be >= PATH_MAX
+ */
+size_t mutt_realpath(char *buf)
+{
+  char s[PATH_MAX];
+
+  if (realpath(buf, s) == NULL)
+    return 0;
+
+  return mutt_str_strfcpy(buf, s, PATH_MAX);
 }
 
 char debugfilename[_POSIX_PATH_MAX];
